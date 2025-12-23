@@ -33,7 +33,7 @@ docker buildx build --no-cache \
   --build-arg BUILD_BRANCH=v${VER} \
   --build-arg COMMIT_SHA=$(git rev-parse HEAD) \
   --label org.opencontainers.image.version=${VER} \
-  --label org.opencontainers.image.source=https://github.com/grafana/grafana \
+  --label org.opencontainers.image.source=https://github.com/jasonacox/grafana \
   --label org.opencontainers.image.revision=$(git rev-parse HEAD) \
   --push -t jasonacox/grafana:${VER} .
 echo ""
@@ -45,7 +45,7 @@ docker buildx build \
   --build-arg BUILD_BRANCH=v${VER} \
   --build-arg COMMIT_SHA=$(git rev-parse HEAD) \
   --label org.opencontainers.image.version=${VER} \
-  --label org.opencontainers.image.source=https://github.com/grafana/grafana \
+  --label org.opencontainers.image.source=https://github.com/jasonacox/grafana \
   --label org.opencontainers.image.revision=$(git rev-parse HEAD) \
   --push -t jasonacox/grafana:latest .
 echo ""
