@@ -250,90 +250,6 @@ export function PanelChrome({
     [onSelect]
   );
 
-  const headerContent = (
-    <>
-      {/* Non collapsible title */}
-      {!collapsible && title && (
-        <div className={styles.title}>
-          <Text
-            element="h2"
-            variant="h6"
-            truncate
-            title={typeof title === 'string' ? title : undefined}
-            id={panelTitleId}
-          >
-            {title}
-          </Text>
-        </div>
-      )}
-
-      {/* Collapsible title */}
-      {collapsible && (
-        <div className={styles.title}>
-          <Text element="h2" variant="h6">
-            <button
-              type="button"
-              className={styles.clearButtonStyles}
-              onClick={() => {
-                toggleOpen();
-                if (onToggleCollapse) {
-                  onToggleCollapse(!collapsed);
-                }
-              }}
-              aria-expanded={!collapsed}
-              aria-controls={!collapsed ? panelContentId : undefined}
-            >
-              <Icon
-                name={!collapsed ? 'angle-down' : 'angle-right'}
-                aria-hidden={!!title}
-                aria-label={
-                  !title ? t('grafana-ui.panel-chrome.aria-label-toggle-collapse', 'toggle collapse panel') : undefined
-                }
-              />
-              <Text variant="h6" truncate id={panelTitleId}>
-                {title}
-              </Text>
-            </button>
-          </Text>
-        </div>
-      )}
-
-      <div className={cx(styles.titleItems, dragClassCancel)} data-testid="title-items-container">
-        <PanelDescription description={description} className={dragClassCancel} />
-        {titleItems}
-      </div>
-      {loadingState === LoadingState.Streaming && (
-        <Tooltip
-          content={
-            onCancelQuery
-              ? t('grafana-ui.panel-chrome.tooltip-stop-streaming', 'Stop streaming')
-              : t('grafana-ui.panel-chrome.tooltip-streaming', 'Streaming')
-          }
-        >
-          <TitleItem className={dragClassCancel} data-testid="panel-streaming" onClick={onCancelQuery}>
-            <Icon name="circle-mono" size="md" className={styles.streaming} />
-          </TitleItem>
-        </Tooltip>
-      )}
-      {loadingState === LoadingState.Loading && onCancelQuery && (
-        <DelayRender delay={2000}>
-          <Tooltip content={t('grafana-ui.panel-chrome.tooltip-cancel', 'Cancel query')}>
-            <TitleItem
-              className={cx(dragClassCancel, styles.pointer)}
-              data-testid="panel-cancel-query"
-              onClick={onCancelQuery}
-            >
-              <Icon name="sync-slash" size="md" />
-            </TitleItem>
-          </Tooltip>
-        </DelayRender>
-      )}
-      <div className={styles.rightAligned}>
-        {actions && <div className={styles.rightActions}>{itemsRenderer(actions, (item) => item)}</div>}
-      </div>
-    </>
-  );
-
   return (
     <MaybeWrap>
       {/* tabIndex={0} is needed for keyboard accessibility in the plot area */}
@@ -371,7 +287,20 @@ export function PanelChrome({
               dragClass={dragClass}
               onOpenMenu={onOpenMenu}
             >
-              {headerContent}
+              {/* HoverWidget content - simplified for hover header mode */}
+              {title && (
+                <div className={styles.title}>
+                  <Text
+                    element="h2"
+                    variant="h6"
+                    truncate
+                    title={typeof title === 'string' ? title : undefined}
+                    id={panelTitleId}
+                  >
+                    {title}
+                  </Text>
+                </div>
+              )}
             </HoverWidget>
 
             {statusMessage && (
@@ -396,27 +325,114 @@ export function PanelChrome({
             onMouseLeave={isSelectable ? onHeaderLeave : undefined}
             onPointerUp={onPointerUp}
           >
-            {statusMessage && (
-              <div className={dragClassCancel}>
-                <PanelStatus
-                  message={statusMessage}
-                  onClick={statusMessageOnClick}
-                  ariaLabel={t('grafana-ui.panel-chrome.ariaLabel-panel-status', 'Panel status')}
-                />
+            {/* Left column - status messages and actions */}
+            <div className={styles.leftElements}>
+              {statusMessage && (
+                <div className={dragClassCancel}>
+                  <PanelStatus
+                    message={statusMessage}
+                    onClick={statusMessageOnClick}
+                    ariaLabel={t('grafana-ui.panel-chrome.ariaLabel-panel-status', 'Panel status')}
+                  />
+                </div>
+              )}
+              {actions && <div className={styles.rightActions}>{itemsRenderer(actions, (item) => item)}</div>}
+            </div>
+
+            {/* Center column - title */}
+            {title && (
+              <>
+                {/* Non collapsible title */}
+                {!collapsible && (
+                  <div className={styles.title}>
+                    <Text
+                      element="h2"
+                      variant="h6"
+                      truncate
+                      title={typeof title === 'string' ? title : undefined}
+                      id={panelTitleId}
+                    >
+                      {title}
+                    </Text>
+                  </div>
+                )}
+
+                {/* Collapsible title */}
+                {collapsible && (
+                  <div className={styles.title}>
+                    <Text element="h2" variant="h6">
+                      <button
+                        type="button"
+                        className={styles.clearButtonStyles}
+                        onClick={() => {
+                          toggleOpen();
+                          if (onToggleCollapse) {
+                            onToggleCollapse(!collapsed);
+                          }
+                        }}
+                        aria-expanded={!collapsed}
+                        aria-controls={!collapsed ? panelContentId : undefined}
+                      >
+                        <Icon
+                          name={!collapsed ? 'angle-down' : 'angle-right'}
+                          aria-hidden={!!title}
+                          aria-label={
+                            !title ? t('grafana-ui.panel-chrome.aria-label-toggle-collapse', 'toggle collapse panel') : undefined
+                          }
+                        />
+                        <Text variant="h6" truncate id={panelTitleId}>
+                          {title}
+                        </Text>
+                      </button>
+                    </Text>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Right column - title items, streaming, loading, menu */}
+            <div className={styles.rightElements}>
+              <div className={cx(styles.titleItems, dragClassCancel)} data-testid="title-items-container">
+                <PanelDescription description={description} className={dragClassCancel} />
+                {titleItems}
               </div>
-            )}
+              {loadingState === LoadingState.Streaming && (
+                <Tooltip
+                  content={
+                    onCancelQuery
+                      ? t('grafana-ui.panel-chrome.tooltip-stop-streaming', 'Stop streaming')
+                      : t('grafana-ui.panel-chrome.tooltip-streaming', 'Streaming')
+                  }
+                >
+                  <TitleItem className={dragClassCancel} data-testid="panel-streaming" onClick={onCancelQuery}>
+                    <Icon name="circle-mono" size="md" className={styles.streaming} />
+                  </TitleItem>
+                </Tooltip>
+              )}
+              {loadingState === LoadingState.Loading && onCancelQuery && (
+                <DelayRender delay={2000}>
+                  <Tooltip content={t('grafana-ui.panel-chrome.tooltip-cancel', 'Cancel query')}>
+                    <TitleItem
+                      className={cx(dragClassCancel, styles.pointer)}
+                      data-testid="panel-cancel-query"
+                      onClick={onCancelQuery}
+                    >
+                      <Icon name="sync-slash" size="md" />
+                    </TitleItem>
+                  </Tooltip>
+                </DelayRender>
+              )}
 
-            {headerContent}
-
-            {menu && (
-              <PanelMenu
-                menu={menu}
-                title={typeof title === 'string' ? title : undefined}
-                placement="bottom-end"
-                menuButtonClass={cx(styles.menuItem, dragClassCancel, showOnHoverClass)}
-                onOpenMenu={onOpenMenu}
-              />
-            )}
+              {menu && (
+                <PanelMenu
+                  menu={menu}
+                  title={typeof title === 'string' ? title : undefined}
+                  placement="bottom-end"
+                  menuButtonClass={cx(styles.menuItem, dragClassCancel, showOnHoverClass)}
+                  onOpenMenu={onOpenMenu}
+                />
+              )}
+            </div>
           </div>
         )}
 
@@ -561,8 +577,10 @@ const getStyles = (theme: GrafanaTheme2) => {
     }),
     headerContainer: css({
       label: 'panel-header',
-      display: 'flex',
+      display: 'grid',
+      gridTemplateColumns: '1fr auto 1fr',
       alignItems: 'center',
+      gap: theme.spacing(1),
     }),
     pointer: css({
       cursor: 'pointer',
@@ -579,10 +597,13 @@ const getStyles = (theme: GrafanaTheme2) => {
     title: css({
       label: 'panel-title',
       display: 'flex',
+      justifyContent: 'center',
+      gridColumn: '2',
       padding: theme.spacing(0, padding),
       minWidth: 0,
       '& > h2': {
         minWidth: 0,
+        textAlign: 'center',
       },
     }),
     items: css({
@@ -621,6 +642,22 @@ const getStyles = (theme: GrafanaTheme2) => {
       marginLeft: 'auto',
       display: 'flex',
       alignItems: 'center',
+    }),
+    leftElements: css({
+      label: 'left-elements',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      gridColumn: '1',
+      gap: theme.spacing(1),
+    }),
+    rightElements: css({
+      label: 'right-elements',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      gridColumn: '3',
+      gap: theme.spacing(1),
     }),
     titleItems: css({
       display: 'flex',
